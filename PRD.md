@@ -38,13 +38,6 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 ---
 
-### Market Analysis
-- **Market Size:** [TAM/SAM/SOM if relevant]
-- **Competitive Landscape:** [Key competitors and how they address this problem]
-- **Differentiation:** [What makes our approach unique/better]
-
----
-
 ## Goals & Success Criteria
 
 ### Business Goals
@@ -147,7 +140,6 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 ### Risks & Mitigation
 * **Risiko Akses Data (Tinggi):** PDSI menolak atau menunda pembukaan akses database/API.
 * *Mitigasi:* Berkoordinasi secepatnya. Jika gagal, siapkan fitur *fallback* agar mahasiswa menginput data secara manual terverifikasi.
-   - [Same structure as above]
 
 ---
 
