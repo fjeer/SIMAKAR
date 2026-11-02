@@ -2,7 +2,7 @@
 
 > **Document Status:** Draft ~~| In Review | Approved | Archived~~  
 > **Last Updated:** 2 November 2026  
-> **Mata Kuliah:** Microservice Arsitektur
+> **Mata Kuliah:** Microservice Arsitektur  
 > **Dosen Pengampu:** Ahmad Halimi  
 > **Contributors:** 2321500018 | Fahmi Bahrul Widad/Developer
 
