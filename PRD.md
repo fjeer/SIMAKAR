@@ -115,7 +115,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 ### Data Model
 * **MySQL Multi-Koneksi:** Basis data lokal (`mysql_simakar`) untuk log audit, draf CV, kuesioner tracer study.
-* Koneksi eksternal/API untuk sinkronisasi data master dari SSO (`sso.unuja.ac.id/api`).
+* Koneksi eksternal/API untuk sinkronisasi data master dari SSO (`https://sso.unuja.ac.id/api/docs#tag/portal-data/POST/portal/data/authorize`).
 
 ### API Requirements
 * `X-Token` Header diperlukan untuk semua permintaan ke SSO.
