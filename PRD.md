@@ -100,7 +100,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 ### Non-Functional Requirements
 
-* **Performance:** Menggunakan Laravel Octane dengan FrankenPHP untuk memproses sinkronisasi API dan *rendering* PDF yang cepat. Cache dan Queue di-*handle* via Redis.
+* **Performance:** Menggunakan Laravel Octane dengan RoadRunner untuk memproses sinkronisasi API dan *rendering* PDF yang cepat. Cache dan Queue di-*handle* via Redis.
 * **Security:** Sistem menggunakan otorisasi *Gate*, *rate-limiting* pada fungsi login, dan *idle-lock* sesi (otomatis *logout* bila tidak ada aktivitas).
 * **Platform:** Aplikasi berbasis web responsif, optimal diakses melalui PC maupun peramban *smartphone* mahasiswa (Frontend: Vite + Tailwind CSS v4).
 
@@ -110,7 +110,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 ### System Architecture
 * **Bahasa & Framework:** PHP 8.4, Laravel 13
-* **Server-side Runtime:** Laravel Octane (FrankenPHP)
+* **Server-side Runtime:** Laravel Octane (RoadRunner)
 * **Frontend Stack:** Vite, Tailwind CSS v4, DataTables, Tom Select, Flatpickr, SweetAlert2.
 
 ### Data Model

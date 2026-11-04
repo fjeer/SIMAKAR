@@ -1,0 +1,75 @@
+@startuml mysql_simakar
+
+' avoid problems with angled crows feet
+skinparam linetype ortho
+
+entity "pengguna" as e01 {
+  *id : number <<generated>>
+  --
+  *sso_id : string <<unique>>
+  *nama : string
+  email : string
+  *peran : string
+  *id_prodi : string
+  *dibuat_pada : timestamp
+  *diperbarui_pada : timestamp
+}
+
+entity "log_audit" as e02 {
+  *id : number <<generated>>
+  --
+  *id_pengguna : number <<FK>>
+  *aksi : string
+  *deskripsi : text
+  *alamat_ip : string
+  *dibuat_pada : timestamp
+}
+
+entity "portofolio_cv" as e03 {
+  *id : number <<generated>>
+  --
+  *id_pengguna : number <<FK>>
+  *judul : string
+  ringkasan_profesional : text
+  *jenis_templat : string
+  file_terakhir_dibuat : string
+  *dibuat_pada : timestamp
+  *diperbarui_pada : timestamp
+}
+
+entity "item_cv" as e04 {
+  *id : number <<generated>>
+  --
+  *id_portofolio_cv : number <<FK>>
+  *tipe : string
+  *judul : string
+  *institusi : string
+  tanggal_mulai : date
+  tanggal_selesai : date
+  deskripsi : text
+  *sumber_api : string
+  *disembunyikan : boolean
+  *dibuat_pada : timestamp
+  *diperbarui_pada : timestamp
+}
+
+entity "pelacakan_alumni" as e05 {
+  *id : number <<generated>>
+  --
+  *id_pengguna : number <<FK>>
+  *tahun_lulus : number
+  *status_saat_ini : string
+  sektor_industri : string
+  nama_perusahaan : string
+  jabatan : string
+  *publik_di_direktori : boolean
+  *dikirim_pada : timestamp
+  *diperbarui_pada : timestamp
+}
+
+e02 }|..|| e01
+e03 }|..|| e01
+e04 }|..|| e03
+e05 |o..|| e01
+
+@enduml
