@@ -11,8 +11,8 @@ entity "pengguna" as e01 {
   email : string
   *peran : string
   *id_prodi : string
-  *dibuat_pada : timestamp
-  *diperbarui_pada : timestamp
+  *created_at : timestamp
+  *updated_at : timestamp
 }
 
 entity "log_audit" as e02 {
@@ -22,7 +22,8 @@ entity "log_audit" as e02 {
   *aksi : string
   *deskripsi : text
   *alamat_ip : string
-  *dibuat_pada : timestamp
+  *created_at : timestamp
+  *updated_at : timestamp
 }
 
 entity "portofolio_cv" as e03 {
@@ -33,8 +34,8 @@ entity "portofolio_cv" as e03 {
   ringkasan_profesional : text
   *jenis_templat : string
   file_terakhir_dibuat : string
-  *dibuat_pada : timestamp
-  *diperbarui_pada : timestamp
+  *created_at : timestamp
+  *updated_at : timestamp
 }
 
 entity "item_cv" as e04 {
@@ -49,8 +50,8 @@ entity "item_cv" as e04 {
   deskripsi : text
   *sumber_api : string
   *disembunyikan : boolean
-  *dibuat_pada : timestamp
-  *diperbarui_pada : timestamp
+  *created_at : timestamp
+  *updated_at : timestamp
 }
 
 entity "pelacakan_alumni" as e05 {
@@ -63,8 +64,8 @@ entity "pelacakan_alumni" as e05 {
   nama_perusahaan : string
   jabatan : string
   *publik_di_direktori : boolean
-  *dikirim_pada : timestamp
-  *diperbarui_pada : timestamp
+  *created_at : timestamp
+  *updated_at : timestamp
 }
 
 e02 }|..|| e01
