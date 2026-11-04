@@ -16,7 +16,7 @@
 Mahasiswa tingkat akhir sering kali kerepotan dan menghabiskan banyak waktu untuk menyusun *Curriculum Vitae* (CV) berstandar industri (*ATS-friendly*) secara manual dari nol. Di sisi lain, data pendukung karir mahasiswa seperti riwayat akademik, rekam jejak magang (MO-KEL), sertifikasi pendamping (SKPI), dan uji kompetensi (UKom) masih tersebar di berbagai sistem yang terpisah di portal SSO Universitas Nurul Jadid (UNUJA).
 
 **Proposed Solution:**  
-SIMAKAR hadir sebagai platform agregator berbasis web yang terintegrasi langsung dengan ekosistem SSO kampus. Solusi ini memusatkan seluruh siklus kesiapan profesional mahasiswa untuk mengotomatisasi pembuatan CV ATS dari data tervalidasi, menyediakan direktori alumni, serta memfasilitasi formulir *tracer study* secara terpusat.
+SIMAKAR hadir sebagai platform agregator berbasis web yang terintegrasi langsung dengan ekosistem SSO kampus. Solusi ini memusatkan seluruh siklus kesiapan profesional mahasiswa untuk mengotomatisasi pembuatan CV ATS dari data tervalidasi, menyediakan direktori alumni, serta memfasilitasi formulir *pelcakn alumni* secara terpusat.
 
 **Success Metrics:**  
 - Mahasiswa tingkat akhir Fakultas Teknik berhasil membuat CV ATS melalui SIMAKAR dengan mudah dan tanpa repot.
@@ -29,12 +29,12 @@ SIMAKAR hadir sebagai platform agregator berbasis web yang terintegrasi langsung
 ## Background & Context
 
 ### Why Now?
-Kebutuhan mendesak dari program studi di lingkungan Fakultas Teknik untuk menyiapkan lulusan menghadapi dunia kerja, sekaligus mempermudah program studi dalam melacak sebaran alumni (*tracer study*) guna keperluan akreditasi. Adanya portal SSO yang sudah mapan memberikan momentum yang tepat untuk mengintegrasikan data tanpa harus membangun pengumpulan data dari nol.
+Kebutuhan mendesak dari program studi di lingkungan Fakultas Teknik untuk menyiapkan lulusan menghadapi dunia kerja, sekaligus mempermudah program studi dalam melacak sebaran alumni (* study*) guna keperluan akreditasi. Adanya portal SSO yang sudah mapan memberikan momentum yang tepat untuk mengintegrasikan data tanpa harus membangun pengumpulan data dari nol.
 _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 ### User Research & Insights
 * **Metode:** Evaluasi keluhan mahasiswa tingkat akhir terkait persiapan berkas kerja.
-* **Temuan Utama:** Mahasiswa kesulitan merangkum portofolio magang dan nilai akademik ke dalam satu dokumen ringkas yang disukai HRD perusahaan. Program studi kesulitan mendapatkan respons *tracer study* dari alumni yang sudah bekerja.
+* **Temuan Utama:** Mahasiswa kesulitan merangkum portofolio magang dan nilai akademik ke dalam satu dokumen ringkas yang ditracersukai HRD perusahaan. Program studi kesulitan mendapatkan respons *pelacakan alumni* dari alumni yang sudah bekerja.
 
 ---
 
@@ -89,7 +89,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 3. **CV Generator**
     * **Auto-Generate CV ATS:** Mesin perender PDF yang menyusun data agregator (identitas, transkrip unggulan, magang, portofolio) menjadi format dokumen standar ATS.
 
-4. **Tracer Study**
+4. **pelacakan alumni**
     * **Form Kuesioner:** Formulir digital untuk pelacakan karir alumni pasca-lulus.
 
 #### Should Have (P1) - Post-Launch
@@ -114,7 +114,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 * **Frontend Stack:** Vite, Tailwind CSS v4, DataTables, Tom Select, Flatpickr, SweetAlert2.
 
 ### Data Model
-* **MySQL Multi-Koneksi:** Basis data lokal (`mysql_simakar`) untuk log audit, draf CV, kuesioner tracer study.
+* **MySQL Multi-Koneksi:** Basis data lokal (`mysql_simakar`) untuk log audit, draf CV, pelacakan alumni.
 * Koneksi eksternal/API untuk sinkronisasi data master dari SSO (`https://sso.unuja.ac.id/api/docs#tag/portal-data/POST/portal/data/authorize`).
 
 ### API Requirements
@@ -160,7 +160,7 @@ _Sebenarnya hanya untuk tugas kuliah saja hehe😅._
 
 * **Fase 3 (Core Dev):** [TBD]
 * Fitur CV ATS otomatis.
-* Modul Tracer study dan direktori alumni.
+* Modul pelacakan alumni dan direktori alumni.
 
 
 * **QA & Testing:** [TBD]
