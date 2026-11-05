@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'sso' => [
+        'endpoint' => env('SSO_ENDPOINT'),
+        'app_id' => env('SSO_APP_ID'),
+        'dev_id' => env('SSO_DEV_ID'),
+        'x_token' => env('SSO_X_TOKEN'),
+    ],
+
 ];
