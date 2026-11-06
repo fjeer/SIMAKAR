@@ -38,3 +38,7 @@ Route::get('/test-redis', function () {
         'cache' => $cacheValue,
     ]);
 });
+
+Route::get('/test-ui', function () {
+    return view('test-ui');
+});

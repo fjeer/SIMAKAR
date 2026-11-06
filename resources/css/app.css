@@ -1,4 +1,8 @@
 @import 'tailwindcss';
+@import 'tom-select/dist/css/tom-select.css';
+@import 'flatpickr/dist/flatpickr.min.css';
+@import 'sweetalert2/dist/sweetalert2.min.css';
+@import 'datatables.net-dt/css/dataTables.dataTables.min.css';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,4 +10,55 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+@media (prefers-color-scheme: dark) {
+    .ts-wrapper.single .ts-control,
+    .ts-wrapper.single.input-active .ts-control,
+    .ts-wrapper.multi .ts-control,
+    .ts-wrapper.multi.input-active .ts-control,
+    .full .ts-control {
+        background-color: #111827;
+        border-color: #374151;
+        color: #f9fafb;
+    }
+
+    .ts-control > input {
+        color: #f9fafb;
+    }
+
+    .ts-control > input::placeholder {
+        color: #6b7280;
+    }
+
+    .ts-wrapper.multi .ts-control > div {
+        background: #374151;
+        color: #f9fafb;
+    }
+
+    .ts-wrapper.multi .ts-control > div.active {
+        background: #4b5563;
+    }
+
+    .ts-dropdown {
+        background: #111827;
+        border-color: #374151;
+        color: #f9fafb;
+    }
+
+    .ts-dropdown .option,
+    .ts-dropdown .optgroup-header,
+    .ts-dropdown .no-results,
+    .ts-dropdown .create {
+        color: #e5e7eb;
+    }
+
+    .ts-dropdown .optgroup-header {
+        background: #111827;
+    }
+
+    .ts-dropdown .active {
+        background-color: #1f2937;
+        color: #ffffff;
+    }
 }
