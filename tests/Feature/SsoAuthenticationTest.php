@@ -1,7 +1,9 @@
 <?php
 
 use App\Models\Pengguna;
+use App\Models\ProfilPengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -109,6 +111,89 @@ test('existing user is updated when logging in again', function () {
     expect(Pengguna::count())->toBe(1);
 
     $this->assertAuthenticatedAs($pengguna);
+});
+
+test('user profile is synced from sso after login', function () {
+    fakeSsoProfile([
+        'nim' => '1234567890',
+        'nama' => 'Fahmi Bahrul Widad',
+        'id_sms' => '6bb7c485-08a3-465c-b549-e5223c2affe2',
+        'prodi' => 'Teknologi Informasi',
+        'gelar_depan' => 'Ir.',
+        'gelar_belakang' => 'S.Kom.',
+        'jenis_kelamin' => 'L',
+        'no_hp' => '081234567890',
+        'id_fakultas' => 'lembaga-1',
+        'fakultas' => 'Fakultas Teknik',
+    ]);
+
+    $this->post('/login', ['nim_nidn' => '1234567890'])
+        ->assertRedirect(route('dashboard'));
+
+    $pengguna = Pengguna::where('sso_id', '1234567890')->firstOrFail();
+
+    $this->assertDatabaseHas('profil_pengguna', [
+        'pengguna_id' => $pengguna->id,
+        'gelar_depan' => 'Ir.',
+        'gelar_belakang' => 'S.Kom.',
+        'jenis_kelamin' => 'L',
+        'no_hp' => '081234567890',
+        'id_fakultas' => 'lembaga-1',
+        'nama_fakultas' => 'Fakultas Teknik',
+        'nama_prodi' => 'Teknologi Informasi',
+    ]);
+
+    expect($pengguna->profil)
+        ->toBeInstanceOf(ProfilPengguna::class)
+        ->and($pengguna->profil?->nama_prodi)->toBe('Teknologi Informasi');
+});
+
+test('existing profile is updated when logging in again', function () {
+    $pengguna = Pengguna::create([
+        'sso_id' => '1234567890',
+        'nama' => 'Nama Lama',
+        'peran' => 'mahasiswa',
+        'id_prodi' => 'TI',
+    ]);
+
+    ProfilPengguna::create([
+        'pengguna_id' => $pengguna->id,
+        'gelar_depan' => 'Prof.',
+        'jenis_kelamin' => 'P',
+        'no_hp' => '080000000000',
+        'id_fakultas' => 'lembaga-lama',
+        'nama_fakultas' => 'Fakultas Lama',
+        'nama_prodi' => 'Prodi Lama',
+    ]);
+
+    fakeSsoProfile([
+        'nim' => '1234567890',
+        'nama' => 'Nama Baru',
+        'id_sms' => 'TE',
+        'prodi' => 'Teknik Elektro',
+        'gelar_depan' => 'Ir.',
+        'gelar_belakang' => 'M.T.',
+        'jenis_kelamin' => 'L',
+        'no_hp' => '081234567890',
+        'id_fakultas' => 'lembaga-1',
+        'fakultas' => 'Fakultas Teknik',
+    ]);
+
+    $this->post('/login', ['nim_nidn' => '1234567890'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertDatabaseHas('profil_pengguna', [
+        'pengguna_id' => $pengguna->id,
+        'gelar_depan' => 'Ir.',
+        'gelar_belakang' => 'M.T.',
+        'jenis_kelamin' => 'L',
+        'no_hp' => '081234567890',
+        'id_fakultas' => 'lembaga-1',
+        'nama_fakultas' => 'Fakultas Teknik',
+        'nama_prodi' => 'Teknik Elektro',
+    ]);
+
+    expect(ProfilPengguna::count())->toBe(1);
 });
 
 test('dosen is resolved with an exact nidn match', function () {
@@ -488,6 +573,40 @@ test('role evaluation is logged with the matched karyawan data', function () {
         ->with('Evaluasi Role SSO', Mockery::on(fn (array $context): bool => $context['id_penduduk'] === 'penduduk-1'
             && $context['hasil_peran'] === 'dekan'
             && $context['data_karyawan_ditemukan']['struktur'] === 'Dekan Fakultas Teknik'));
+});
+
+test('sso api failure response is logged as warning with the response body', function () {
+    Http::fake([
+        'sso.unuja.ac.id/portal/data/authorize' => Http::response([
+            'success' => false,
+            'message' => 'invalid credentials',
+        ]),
+    ]);
+
+    Log::spy();
+
+    $this->from('/login')
+        ->post('/login', ['nim_nidn' => '0000000000'])
+        ->assertRedirect('/login')
+        ->assertSessionHasErrors('nim_nidn');
+
+    Log::shouldHaveReceived('warning')
+        ->withArgs(fn (string $message, array $context = []): bool => str_contains($message, 'SSO')
+            && str_contains($context['body'] ?? '', 'invalid credentials'));
+});
+
+test('sso connection errors are logged with the api error prefix', function () {
+    Http::fake(fn () => throw new ConnectionException('SSO down'));
+
+    Log::spy();
+
+    $this->from('/login')
+        ->post('/login', ['nim_nidn' => '0000000000'])
+        ->assertRedirect('/login')
+        ->assertSessionHasErrors('nim_nidn');
+
+    Log::shouldHaveReceived('error')
+        ->withArgs(fn (string $message): bool => str_contains($message, 'API Error pada SSO: SSO down'));
 });
 
 test('failed sso response does not authenticate the user', function () {

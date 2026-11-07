@@ -3,7 +3,6 @@
 namespace App\Services;
 
 use App\Exceptions\SsoAuthenticationException;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -51,9 +50,11 @@ class SsoService
 
                 return [...$profile, 'peran' => $peran];
             }
-        } catch (ConnectionException $exception) {
-            Log::error('Koneksi ke SSO gagal.', [
-                'message' => $exception->getMessage(),
+        } catch (SsoAuthenticationException $exception) {
+            throw $exception;
+        } catch (\Exception $exception) {
+            Log::error('API Error pada SSO: '.$exception->getMessage(), [
+                'nim_nidn' => $nimNidn,
             ]);
 
             throw new SsoAuthenticationException(
@@ -74,19 +75,32 @@ class SsoService
      */
     private function authorize(string $nimNidn): array
     {
-        $response = $this->client()->post($this->endpoint(), [
-            'username' => $nimNidn,
-        ]);
+        try {
+            $response = $this->client()->post($this->endpoint(), [
+                'username' => $nimNidn,
+            ]);
+        } catch (\Exception $exception) {
+            Log::error('API Error pada SSO: '.$exception->getMessage(), [
+                'endpoint' => 'authorize',
+            ]);
 
-        if ($response->failed()) {
-            $this->logFailedResponse('Permintaan authorize SSO gagal.', $response);
+            throw new SsoAuthenticationException(
+                'Layanan SSO tidak dapat dihubungi.',
+                previous: $exception,
+            );
+        }
+
+        $body = $response->json();
+
+        if ($response->failed() || data_get($body, 'success') === false) {
+            $this->logFailedResponse('Respons API SSO tidak berhasil.', $response);
 
             throw new SsoAuthenticationException(
                 'NIM/NIDN tidak ditemukan atau layanan SSO sedang tidak tersedia.'
             );
         }
 
-        $authorization = $response->json('data.info');
+        $authorization = data_get($body, 'data.info');
 
         if (! is_array($authorization)) {
             throw new SsoAuthenticationException('Data profil dari SSO tidak valid.');
@@ -165,18 +179,28 @@ class SsoService
      */
     private function fetchRecords(string $dataUrl, string $filter, array $parameters = []): array
     {
-        $response = $this->client()->post($dataUrl, [
-            'filter' => $filter,
-            ...$parameters,
-        ]);
+        try {
+            $response = $this->client()->post($dataUrl, [
+                'filter' => $filter,
+                ...$parameters,
+            ]);
+        } catch (\Exception $exception) {
+            Log::error('API Error pada SSO: '.$exception->getMessage(), [
+                'filter' => $filter,
+            ]);
 
-        if ($response->failed()) {
-            $this->logFailedResponse('Permintaan data SSO gagal.', $response);
+            throw $exception;
+        }
+
+        $body = $response->json();
+
+        if ($response->failed() || data_get($body, 'success') === false) {
+            $this->logFailedResponse('Respons API SSO tidak berhasil.', $response);
 
             return [];
         }
 
-        $data = data_get($response->json(), 'data') ?? [];
+        $data = data_get($body, 'data') ?? [];
 
         $records = data_get($data, 'data');
 

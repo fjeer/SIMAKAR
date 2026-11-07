@@ -9,6 +9,7 @@ use App\Services\SsoService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\View\View;
@@ -38,6 +39,7 @@ class AuthController extends Controller
         }
 
         $attributes = $this->profileAttributes($profile);
+        $profileDetails = $this->profileDetails($profile);
 
         Log::info('Evaluasi Role SSO', [
             'id_penduduk' => data_get($profile, 'id_penduduk'),
@@ -45,10 +47,32 @@ class AuthController extends Controller
             'data_karyawan_ditemukan' => data_get($profile, 'data_karyawan'),
         ]);
 
-        $pengguna = Pengguna::updateOrCreate(
-            ['sso_id' => $nimNidn],
-            $attributes,
-        );
+        DB::beginTransaction();
+
+        try {
+            $pengguna = Pengguna::updateOrCreate(
+                ['sso_id' => $nimNidn],
+                $attributes,
+            );
+
+            $pengguna->profil()->updateOrCreate(
+                ['pengguna_id' => $pengguna->id],
+                $profileDetails,
+            );
+
+            DB::commit();
+        } catch (\Exception $exception) {
+            DB::rollBack();
+
+            Log::error('Gagal menyimpan data pengguna saat login.', [
+                'sso_id' => $nimNidn,
+                'payload' => $attributes,
+                'profil' => $profileDetails,
+                'message' => $exception->getMessage(),
+            ]);
+
+            throw $exception;
+        }
 
         Auth::login($pengguna);
 
@@ -77,6 +101,23 @@ class AuthController extends Controller
             'nama' => $this->profileValue($profile, ['nama', 'nama_penduduk', 'name', 'nama_lengkap'], 'Pengguna'),
             'peran' => $this->resolvePeran($profile),
             'id_prodi' => $this->profileValue($profile, ['id_sms', 'id_prodi', 'kode_prodi', 'prodi.id', 'prodi.kode', 'prodi'], '-'),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $profile
+     * @return array<string, mixed>
+     */
+    private function profileDetails(array $profile): array
+    {
+        return [
+            'gelar_depan' => data_get($profile, 'gelar_depan'),
+            'gelar_belakang' => data_get($profile, 'gelar_belakang'),
+            'jenis_kelamin' => data_get($profile, 'jenis_kelamin'),
+            'no_hp' => data_get($profile, 'no_hp'),
+            'id_fakultas' => data_get($profile, 'id_fakultas'),
+            'nama_fakultas' => data_get($profile, 'fakultas'),
+            'nama_prodi' => data_get($profile, 'prodi'),
         ];
     }
 

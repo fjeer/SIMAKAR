@@ -29,4 +29,9 @@ class Pengguna extends Authenticatable
     {
         return $this->hasOne(PelacakanAlumni::class, 'id_pengguna');
     }
+
+    public function profil(): HasOne
+    {
+        return $this->hasOne(ProfilPengguna::class);
+    }
 }
