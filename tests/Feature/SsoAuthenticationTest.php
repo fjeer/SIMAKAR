@@ -67,6 +67,7 @@ test('user is synced and authenticated when sso returns a profile', function () 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '1234567890',
         'nama' => 'Fahmi Bahrul Widad',
+        'email' => 'fa******nt@unuja.ac.id',
         'peran' => 'mahasiswa',
         'id_prodi' => '6bb7c485-08a3-465c-b549-e5223c2affe2',
     ]);
@@ -260,6 +261,7 @@ test('dosen is resolved with an exact nidn match', function () {
                     [
                         'nidn' => '0702078504',
                         'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'email' => 'matlubul@unuja.ac.id',
                         'id_penduduk' => 'penduduk-1',
                         'fakultas' => 'Fakultas Teknik',
                         'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
@@ -276,6 +278,7 @@ test('dosen is resolved with an exact nidn match', function () {
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '0702078504',
         'nama' => 'MATLUBUL KHAIRI',
+        'email' => 'matlubul@unuja.ac.id',
         'peran' => 'dosen',
         'id_prodi' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
     ]);

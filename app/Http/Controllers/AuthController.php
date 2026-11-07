@@ -93,12 +93,13 @@ class AuthController extends Controller
 
     /**
      * @param  array<string, mixed>  $profile
-     * @return array{nama: string, peran: string, id_prodi: string}
+     * @return array{nama: string, email: string|null, peran: string, id_prodi: string}
      */
     private function profileAttributes(array $profile): array
     {
         return [
             'nama' => $this->profileValue($profile, ['nama', 'nama_penduduk', 'name', 'nama_lengkap'], 'Pengguna'),
+            'email' => $this->nullableProfileValue($profile, ['email']),
             'peran' => $this->resolvePeran($profile),
             'id_prodi' => $this->profileValue($profile, ['id_sms', 'id_prodi', 'kode_prodi', 'prodi.id', 'prodi.kode', 'prodi'], '-'),
         ];
@@ -149,6 +150,15 @@ class AuthController extends Controller
      */
     private function profileValue(array $profile, array $keys, string $default): string
     {
+        return $this->nullableProfileValue($profile, $keys) ?? $default;
+    }
+
+    /**
+     * @param  array<string, mixed>  $profile
+     * @param  list<string>  $keys
+     */
+    private function nullableProfileValue(array $profile, array $keys): ?string
+    {
         foreach ($keys as $key) {
             $value = data_get($profile, $key);
 
@@ -157,6 +167,6 @@ class AuthController extends Controller
             }
         }
 
-        return $default;
+        return null;
     }
 }
