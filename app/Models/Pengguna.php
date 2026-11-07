@@ -2,15 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-#[Fillable(['sso_id', 'nama', 'email', 'peran', 'id_prodi'])]
 class Pengguna extends Authenticatable
 {
     protected $table = 'pengguna';
+
+    /**
+     * @var list<string>
+     */
+    protected $fillable = ['sso_id', 'nama', 'email', 'peran', 'id_prodi'];
 
     public function logAudit(): HasMany
     {

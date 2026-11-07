@@ -4,6 +4,7 @@ use App\Models\Pengguna;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Request as ClientRequest;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 uses(RefreshDatabase::class);
 
@@ -141,6 +142,32 @@ test('dosen is resolved with an exact nidn match', function () {
             ]);
         }
 
+        if ($request['filter'] === 'lembaga') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_lembaga' => 'lembaga-1', 'lembaga' => 'Fakultas Teknik'],
+                        ['id_lembaga' => 'lembaga-2', 'lembaga' => 'Fakultas Ekonomi'],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'karyawan') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        [
+                            'id_penduduk' => 'penduduk-1',
+                            'struktur' => 'Dosen Tetap',
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
         return Http::response([
             'success' => true,
             'data' => [
@@ -148,6 +175,8 @@ test('dosen is resolved with an exact nidn match', function () {
                     [
                         'nidn' => '0702078504',
                         'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'id_penduduk' => 'penduduk-1',
+                        'fakultas' => 'Fakultas Teknik',
                         'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
                         'prodi' => 'Teknik Informatika',
                     ],
@@ -165,6 +194,300 @@ test('dosen is resolved with an exact nidn match', function () {
         'peran' => 'dosen',
         'id_prodi' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
     ]);
+});
+
+test('dosen struktur determines the mapped role', function (string $struktur, string $expectedPeran) {
+    Http::fake(function (ClientRequest $request) use ($struktur) {
+        if ($request->url() === 'https://sso.unuja.ac.id/portal/data/authorize') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'info' => [
+                        'urls' => [
+                            'data' => 'https://sso.unuja.ac.id/portal/data/data/test-token',
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'mahasiswa') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'lembaga') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_lembaga' => 'lembaga-1', 'lembaga' => 'Fakultas Teknik'],
+                        ['id_lembaga' => 'lembaga-2', 'lembaga' => 'Fakultas Ekonomi'],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'karyawan') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_penduduk' => 'penduduk-2', 'struktur' => 'Dekan Fakultas Teknik'],
+                        ['id_penduduk' => 'penduduk-1', 'struktur' => $struktur],
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'success' => true,
+            'data' => [
+                'data' => [
+                    [
+                        'nidn' => '0702078504',
+                        'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'id_penduduk' => 'penduduk-1',
+                        'fakultas' => 'Fakultas Teknik',
+                        'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
+                        'prodi' => 'Teknik Informatika',
+                    ],
+                ],
+            ],
+        ]);
+    });
+
+    $this->post('/login', ['nim_nidn' => '0702078504'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertDatabaseHas('pengguna', [
+        'sso_id' => '0702078504',
+        'peran' => $expectedPeran,
+    ]);
+
+    Http::assertSent(fn (ClientRequest $request) => $request->url() === 'https://sso.unuja.ac.id/portal/data/data/test-token'
+        && $request['filter'] === 'karyawan'
+        && ($request['id_lembaga'] ?? null) === 'lembaga-1'
+        && $request->hasHeader('X-Token', 'test-x-token'));
+})->with([
+    'dekan' => ['Dekan Fakultas Teknik', 'dekan'],
+    'wakil dekan' => ['Wakil Dekan I', 'dekan'],
+    'ketua prodi' => ['Ketua Prodi Teknik Informatika', 'kaprodi'],
+    'kaprodi' => ['KAPRODI Teknik Informatika', 'kaprodi'],
+    'dosen' => ['Dosen Tetap', 'dosen'],
+]);
+
+test('karyawan data is fetched from the dynamic url with auth headers', function () {
+    Http::fake(function (ClientRequest $request) {
+        if ($request->url() === 'https://sso.unuja.ac.id/portal/data/authorize') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'info' => [
+                        'urls' => [
+                            'data' => 'https://sso.unuja.ac.id/portal/data/data/test-token',
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'mahasiswa') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'lembaga') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_lembaga' => 'lembaga-1', 'lembaga' => 'Fakultas Teknik'],
+                        ['id_lembaga' => 'lembaga-2', 'lembaga' => 'Fakultas Ekonomi'],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'karyawan') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_penduduk' => 'penduduk-2', 'struktur' => 'Dekan Fakultas Teknik'],
+                        ['id_penduduk' => 'penduduk-1', 'struktur' => 'Ketua Prodi Teknik Informatika'],
+                    ],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'success' => true,
+            'data' => [
+                'data' => [
+                    [
+                        'nidn' => '0702078504',
+                        'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'id_penduduk' => 'penduduk-1',
+                        'fakultas' => 'Fakultas Teknik',
+                        'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
+                    ],
+                ],
+            ],
+        ]);
+    });
+
+    $this->post('/login', ['nim_nidn' => '0702078504'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertDatabaseHas('pengguna', [
+        'sso_id' => '0702078504',
+        'peran' => 'kaprodi',
+    ]);
+
+    Http::assertSent(fn (ClientRequest $request) => $request->url() === 'https://sso.unuja.ac.id/portal/data/data/test-token'
+        && $request['filter'] === 'lembaga'
+        && $request->hasHeader('X-Token', 'test-x-token'));
+
+    Http::assertSent(fn (ClientRequest $request) => $request->url() === 'https://sso.unuja.ac.id/portal/data/data/test-token'
+        && $request['filter'] === 'karyawan'
+        && ($request['id_lembaga'] ?? null) === 'lembaga-1'
+        && $request->hasHeader('X-Token', 'test-x-token'));
+});
+
+test('karyawan is not requested when no lembaga matches the dosen faculty', function () {
+    Http::fake(function (ClientRequest $request) {
+        if ($request->url() === 'https://sso.unuja.ac.id/portal/data/authorize') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'info' => [
+                        'urls' => [
+                            'data' => 'https://sso.unuja.ac.id/portal/data/data/test-token',
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'lembaga') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_lembaga' => 'lembaga-2', 'lembaga' => 'Fakultas Ekonomi'],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'karyawan') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    ['id_penduduk' => 'penduduk-1', 'struktur' => 'Dekan Fakultas Teknik'],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'success' => true,
+            'data' => [
+                'data' => [
+                    [
+                        'nidn' => '0702078504',
+                        'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'id_penduduk' => 'penduduk-1',
+                        'fakultas' => 'Fakultas Teknik',
+                        'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
+                    ],
+                ],
+            ],
+        ]);
+    });
+
+    $this->post('/login', ['nim_nidn' => '0702078504'])
+        ->assertRedirect(route('dashboard'));
+
+    $this->assertDatabaseHas('pengguna', [
+        'sso_id' => '0702078504',
+        'peran' => 'dosen',
+    ]);
+
+    Http::assertNotSent(fn (ClientRequest $request) => ($request['filter'] ?? null) === 'karyawan');
+});
+
+test('role evaluation is logged with the matched karyawan data', function () {
+    Http::fake(function (ClientRequest $request) {
+        if ($request->url() === 'https://sso.unuja.ac.id/portal/data/authorize') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'info' => [
+                        'urls' => [
+                            'data' => 'https://sso.unuja.ac.id/portal/data/data/test-token',
+                        ],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'lembaga') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    'data' => [
+                        ['id_lembaga' => 'lembaga-1', 'lembaga' => 'Fakultas Teknik'],
+                        ['id_lembaga' => 'lembaga-2', 'lembaga' => 'Fakultas Ekonomi'],
+                    ],
+                ],
+            ]);
+        }
+
+        if ($request['filter'] === 'karyawan') {
+            return Http::response([
+                'success' => true,
+                'data' => [
+                    ['id_penduduk' => 'penduduk-2', 'struktur' => 'Ketua Prodi Teknik Informatika'],
+                    ['id_penduduk' => 'penduduk-1', 'struktur' => 'Dekan Fakultas Teknik'],
+                ],
+            ]);
+        }
+
+        return Http::response([
+            'success' => true,
+            'data' => [
+                'data' => [
+                    [
+                        'nidn' => '0702078504',
+                        'nama_penduduk' => 'MATLUBUL KHAIRI',
+                        'id_penduduk' => 'penduduk-1',
+                        'fakultas' => 'Fakultas Teknik',
+                        'id_sms' => '1319bfef-2188-4240-b7a3-7a507bec2e64',
+                    ],
+                ],
+            ],
+        ]);
+    });
+
+    Log::spy();
+
+    $this->post('/login', ['nim_nidn' => '0702078504'])
+        ->assertRedirect(route('dashboard'));
+
+    Log::shouldHaveReceived('info')
+        ->once()
+        ->with('Evaluasi Role SSO', Mockery::on(fn (array $context): bool => $context['id_penduduk'] === 'penduduk-1'
+            && $context['hasil_peran'] === 'dekan'
+            && $context['data_karyawan_ditemukan']['struktur'] === 'Dekan Fakultas Teknik'));
 });
 
 test('failed sso response does not authenticate the user', function () {

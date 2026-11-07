@@ -29,7 +29,7 @@
 
                 @if ($errors->any())
                     <div role="alert" class="mt-6 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-600/20 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/30">
-                        {{ $errors->first('nim_nidn') }}
+                        {{ $errors->first('nim_nidn') ?: $errors->first('idle') }}
                     </div>
                 @endif
 

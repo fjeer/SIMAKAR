@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthController extends Controller
@@ -36,9 +37,17 @@ class AuthController extends Controller
                 ->withInput();
         }
 
+        $attributes = $this->profileAttributes($profile);
+
+        Log::info('Evaluasi Role SSO', [
+            'id_penduduk' => data_get($profile, 'id_penduduk'),
+            'hasil_peran' => $attributes['peran'],
+            'data_karyawan_ditemukan' => data_get($profile, 'data_karyawan'),
+        ]);
+
         $pengguna = Pengguna::updateOrCreate(
             ['sso_id' => $nimNidn],
-            $this->profileAttributes($profile),
+            $attributes,
         );
 
         Auth::login($pengguna);
@@ -66,9 +75,31 @@ class AuthController extends Controller
     {
         return [
             'nama' => $this->profileValue($profile, ['nama', 'nama_penduduk', 'name', 'nama_lengkap'], 'Pengguna'),
-            'peran' => $this->profileValue($profile, ['peran', 'role'], 'mahasiswa'),
+            'peran' => $this->resolvePeran($profile),
             'id_prodi' => $this->profileValue($profile, ['id_sms', 'id_prodi', 'kode_prodi', 'prodi.id', 'prodi.kode', 'prodi'], '-'),
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $profile
+     */
+    private function resolvePeran(array $profile): string
+    {
+        if (Str::lower($this->profileValue($profile, ['peran', 'role'], '')) === 'mahasiswa') {
+            return 'mahasiswa';
+        }
+
+        $struktur = Str::lower($this->profileValue($profile, ['struktur'], ''));
+
+        if (Str::contains($struktur, 'dekan')) {
+            return 'dekan';
+        }
+
+        if (Str::contains($struktur, ['kaprodi', 'ketua prodi'])) {
+            return 'kaprodi';
+        }
+
+        return 'dosen';
     }
 
     /**

@@ -8,6 +8,7 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class SsoService
 {
@@ -29,12 +30,26 @@ class SsoService
                 throw new SsoAuthenticationException('Data profil dari SSO tidak valid.');
             }
 
-            foreach (['mahasiswa', 'dosen'] as $peran) {
+            foreach (['dosen', 'mahasiswa'] as $peran) {
                 $profile = $this->fetchProfile($dataUrl, $peran, $nimNidn);
 
-                if ($profile !== null) {
-                    return [...$profile, 'peran' => $peran];
+                if ($profile === null) {
+                    continue;
                 }
+
+                if ($peran === 'dosen') {
+                    $dataKaryawan = $this->fetchKaryawan($dataUrl, $profile);
+                    $struktur = data_get($dataKaryawan, 'struktur');
+
+                    return [
+                        ...$profile,
+                        'peran' => $peran,
+                        'struktur' => is_scalar($struktur) ? (string) $struktur : '',
+                        'data_karyawan' => $dataKaryawan,
+                    ];
+                }
+
+                return [...$profile, 'peran' => $peran];
             }
         } catch (ConnectionException $exception) {
             Log::error('Koneksi ke SSO gagal.', [
@@ -85,35 +100,99 @@ class SsoService
      */
     private function fetchProfile(string $dataUrl, string $peran, string $nimNidn): ?array
     {
-        $response = $this->client()->post($dataUrl, [
-            'filter' => $peran,
-            'search' => $nimNidn,
-        ]);
-
-        if ($response->failed()) {
-            $this->logFailedResponse('Permintaan data SSO gagal.', $response);
-
-            return null;
-        }
-
-        $payload = $response->json();
-
-        $records = data_get($payload, 'data.data');
-        $records = is_array($records) ? $records : data_get($payload, 'data');
-
-        if (! is_array($records)) {
-            return null;
-        }
-
         $identifierKey = $peran === 'dosen' ? 'nidn' : 'nim';
 
-        foreach ($records as $record) {
-            if (is_array($record) && (string) data_get($record, $identifierKey) === $nimNidn) {
+        foreach ($this->fetchRecords($dataUrl, $peran, ['search' => $nimNidn]) as $record) {
+            if ((string) data_get($record, $identifierKey) === $nimNidn) {
                 return $record;
             }
         }
 
         return null;
+    }
+
+    /**
+     * @param  array<string, mixed>  $dosen
+     * @return array<string, mixed>|null
+     */
+    private function fetchKaryawan(string $dataUrl, array $dosen): ?array
+    {
+        $idPenduduk = data_get($dosen, 'id_penduduk');
+
+        if (! is_scalar($idPenduduk) || blank($idPenduduk)) {
+            return null;
+        }
+
+        $idLembaga = $this->fetchIdLembaga($dataUrl, $dosen);
+
+        if ($idLembaga === null) {
+            return null;
+        }
+
+        return collect($this->fetchRecords($dataUrl, 'karyawan', ['id_lembaga' => $idLembaga]))
+            ->firstWhere('id_penduduk', $idPenduduk);
+    }
+
+    /**
+     * @param  array<string, mixed>  $dosen
+     */
+    private function fetchIdLembaga(string $dataUrl, array $dosen): int|string|null
+    {
+        $fakultasDosen = Str::lower((string) data_get($dosen, 'fakultas', ''));
+
+        if (blank($fakultasDosen)) {
+            return null;
+        }
+
+        $lembagaCocok = collect($this->fetchRecords($dataUrl, 'lembaga'))
+            ->first(fn (array $lembaga): bool => Str::contains(
+                Str::lower((string) data_get($lembaga, 'lembaga', '')),
+                $fakultasDosen,
+            ));
+
+        $idLembaga = data_get($lembagaCocok, 'id_lembaga');
+
+        if (! is_int($idLembaga) && ! is_string($idLembaga)) {
+            return null;
+        }
+
+        return $idLembaga;
+    }
+
+    /**
+     * @param  array<string, mixed>  $parameters
+     * @return list<array<string, mixed>>
+     */
+    private function fetchRecords(string $dataUrl, string $filter, array $parameters = []): array
+    {
+        $response = $this->client()->post($dataUrl, [
+            'filter' => $filter,
+            ...$parameters,
+        ]);
+
+        if ($response->failed()) {
+            $this->logFailedResponse('Permintaan data SSO gagal.', $response);
+
+            return [];
+        }
+
+        $data = data_get($response->json(), 'data') ?? [];
+
+        $records = data_get($data, 'data');
+
+        if (! is_array($records)) {
+            $records = $data;
+        }
+
+        if (! is_array($records)) {
+            return [];
+        }
+
+        if (! array_is_list($records) && (isset($records['id_penduduk']) || isset($records['id_lembaga']) || isset($records['nidn']) || isset($records['nim']))) {
+            $records = [$records];
+        }
+
+        return array_values(array_filter($records, 'is_array'));
     }
 
     private function client(): PendingRequest
