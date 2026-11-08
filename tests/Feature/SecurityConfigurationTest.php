@@ -45,7 +45,7 @@ test('an idle authenticated session is logged out', function () {
 
     $this->actingAs($pengguna)
         ->withSession(['last_activity' => now()->subMinutes(16)])
-        ->get('/dashboard')
+        ->get('/mahasiswa/dashboard')
         ->assertRedirect(route('login'))
         ->assertSessionHasErrors('idle');
 
@@ -67,7 +67,7 @@ test('an active authenticated session is refreshed', function () {
 
     $this->actingAs($pengguna)
         ->withSession(['last_activity' => now()->subMinutes(5)])
-        ->get('/dashboard')
+        ->get('/mahasiswa/dashboard')
         ->assertOk();
 
     expect(session('last_activity'))->not->toBeNull();

@@ -78,7 +78,7 @@ class AuthController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->route('dashboard');
+        return redirect()->route('dashboard.'.$pengguna->peran);
     }
 
     public function logout(Request $request): RedirectResponse

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use App\Jobs\GeneratePdfCvJob;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -21,9 +22,13 @@ Route::post('/logout', [AuthController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
-Route::get('/dashboard', function () {
-    return 'Selamat datang di SIMAKAR';
-})->middleware('auth')->name('dashboard');
+Route::middleware('auth')->group(function () {
+    Route::middleware('can:mahasiswa')->get('/mahasiswa/dashboard', [DashboardController::class, 'mahasiswa'])->name('dashboard.mahasiswa');
+    Route::middleware('can:dosen')->get('/dosen/dashboard', [DashboardController::class, 'dosen'])->name('dashboard.dosen');
+    Route::middleware('can:kaprodi')->get('/kaprodi/dashboard', [DashboardController::class, 'kaprodi'])->name('dashboard.kaprodi');
+    Route::middleware('can:dekan')->get('/dekan/dashboard', [DashboardController::class, 'dekan'])->name('dashboard.dekan');
+    Route::middleware('can:admin')->get('/admin/dashboard', [DashboardController::class, 'admin'])->name('dashboard.admin');
+});
 
 Route::get('/test-redis', function () {
     Cache::put('test_redis_simakar', 'Berhasil terhubung ke Redis!', 60);

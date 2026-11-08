@@ -62,7 +62,7 @@ test('user is synced and authenticated when sso returns a profile', function () 
     ]);
 
     $this->post('/login', ['nim_nidn' => '1234567890'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.mahasiswa'));
 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '1234567890',
@@ -102,7 +102,7 @@ test('existing user is updated when logging in again', function () {
     ]);
 
     $this->post('/login', ['nim_nidn' => '1234567890'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.mahasiswa'));
 
     $pengguna->refresh();
 
@@ -129,7 +129,7 @@ test('user profile is synced from sso after login', function () {
     ]);
 
     $this->post('/login', ['nim_nidn' => '1234567890'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.mahasiswa'));
 
     $pengguna = Pengguna::where('sso_id', '1234567890')->firstOrFail();
 
@@ -181,7 +181,7 @@ test('existing profile is updated when logging in again', function () {
     ]);
 
     $this->post('/login', ['nim_nidn' => '1234567890'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.mahasiswa'));
 
     $this->assertDatabaseHas('profil_pengguna', [
         'pengguna_id' => $pengguna->id,
@@ -273,7 +273,7 @@ test('dosen is resolved with an exact nidn match', function () {
     });
 
     $this->post('/login', ['nim_nidn' => '0702078504'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.dosen'));
 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '0702078504',
@@ -350,7 +350,7 @@ test('dosen struktur determines the mapped role', function (string $struktur, st
     });
 
     $this->post('/login', ['nim_nidn' => '0702078504'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.'.$expectedPeran));
 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '0702078504',
@@ -434,7 +434,7 @@ test('karyawan data is fetched from the dynamic url with auth headers', function
     });
 
     $this->post('/login', ['nim_nidn' => '0702078504'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.kaprodi'));
 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '0702078504',
@@ -503,7 +503,7 @@ test('karyawan is not requested when no lembaga matches the dosen faculty', func
     });
 
     $this->post('/login', ['nim_nidn' => '0702078504'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.dosen'));
 
     $this->assertDatabaseHas('pengguna', [
         'sso_id' => '0702078504',
@@ -569,7 +569,7 @@ test('role evaluation is logged with the matched karyawan data', function () {
     Log::spy();
 
     $this->post('/login', ['nim_nidn' => '0702078504'])
-        ->assertRedirect(route('dashboard'));
+        ->assertRedirect(route('dashboard.dekan'));
 
     Log::shouldHaveReceived('info')
         ->once()
@@ -634,5 +634,5 @@ test('nim nidn is required', function () {
 });
 
 test('dashboard requires authentication', function () {
-    $this->get('/dashboard')->assertRedirect(route('login'));
+    $this->get('/mahasiswa/dashboard')->assertRedirect(route('login'));
 });
