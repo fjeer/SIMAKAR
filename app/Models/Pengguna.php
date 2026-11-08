@@ -34,4 +34,24 @@ class Pengguna extends Authenticatable
     {
         return $this->hasOne(ProfilPengguna::class);
     }
+
+    public function pendidikan(): HasMany
+    {
+        return $this->hasMany(Pendidikan::class, 'pengguna_id');
+    }
+
+    public function pengalaman(): HasMany
+    {
+        return $this->hasMany(Pengalaman::class, 'pengguna_id');
+    }
+
+    public function sertifikasi(): HasMany
+    {
+        return $this->hasMany(Sertifikasi::class, 'pengguna_id');
+    }
+
+    public function keahlian(): HasMany
+    {
+        return $this->hasMany(Keahlian::class, 'pengguna_id');
+    }
 }
