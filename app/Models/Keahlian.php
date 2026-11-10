@@ -16,7 +16,21 @@ class Keahlian extends Model
         'pengguna_id',
         'nama_keahlian',
         'tingkat',
+        'sumber_data',
+        'is_verified',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_verified' => 'boolean',
+        ];
+    }
 
     public function pengguna(): BelongsTo
     {

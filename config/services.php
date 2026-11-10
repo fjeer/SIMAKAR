@@ -40,6 +40,7 @@ return [
         'app_id' => env('SSO_APP_ID'),
         'dev_id' => env('SSO_DEV_ID'),
         'x_token' => env('SSO_X_TOKEN'),
+        'institusi' => env('SSO_INSTITUSI', 'Universitas Nurul Jadid'),
     ],
 
 ];

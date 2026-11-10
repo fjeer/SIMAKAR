@@ -20,6 +20,8 @@ class Pengalaman extends Model
         'deskripsi',
         'tanggal_mulai',
         'tanggal_selesai',
+        'sumber_data',
+        'is_verified',
     ];
 
     /**
@@ -32,6 +34,7 @@ class Pengalaman extends Model
         return [
             'tanggal_mulai' => 'date',
             'tanggal_selesai' => 'date',
+            'is_verified' => 'boolean',
         ];
     }
 

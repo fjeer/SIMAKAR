@@ -19,6 +19,8 @@ class Sertifikasi extends Model
         'nomor_sertifikat',
         'tanggal_terbit',
         'tanggal_kedaluwarsa',
+        'sumber_data',
+        'is_verified',
     ];
 
     /**
@@ -31,6 +33,7 @@ class Sertifikasi extends Model
         return [
             'tanggal_terbit' => 'date',
             'tanggal_kedaluwarsa' => 'date',
+            'is_verified' => 'boolean',
         ];
     }
 

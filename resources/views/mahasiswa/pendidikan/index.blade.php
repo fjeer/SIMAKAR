@@ -1,0 +1,287 @@
+@extends('layouts.app')
+
+@section('title', 'Pendidikan - SIMAKAR')
+
+@section('content')
+    <div class="space-y-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <p class="text-sm font-medium text-indigo-600 dark:text-indigo-400">Profil & CV</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">Pendidikan</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    Kelola riwayat pendidikan formal yang akan tampil pada CV Anda.
+                </p>
+            </div>
+
+            <button
+                type="button"
+                data-dialog-open="pendidikan-create"
+                class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/30"
+            >
+                <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Tambah Pendidikan
+            </button>
+        </div>
+
+        @if (session('status'))
+            <div role="status" class="flex items-start gap-3 rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/30">
+                <svg class="mt-0.5 size-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                <p>{{ session('status') }}</p>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div role="alert" class="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-600/20 dark:bg-red-500/10 dark:text-red-300 dark:ring-red-400/30">
+                <p class="font-semibold">Periksa kembali data yang diisi.</p>
+                <ul class="mt-2 list-inside list-disc space-y-1">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <div class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 dark:bg-gray-900 dark:ring-white/10">
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 text-sm dark:divide-white/10">
+                    <thead class="bg-gray-50 dark:bg-white/5">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jenjang</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Institusi</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Jurusan</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Tahun</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Nilai</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Sumber</th>
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">Aksi</th>
+                        </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-gray-100 dark:divide-white/5">
+                        @forelse ($pendidikan as $item)
+                            <tr class="transition hover:bg-gray-50/70 dark:hover:bg-white/5">
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    <span class="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-600/20 dark:bg-indigo-500/10 dark:text-indigo-300 dark:ring-indigo-400/30">
+                                        {{ $item->jenjang }}
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                                    {{ $item->nama_institusi }}
+                                </td>
+                                <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
+                                    {{ $item->jurusan ?: '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-gray-600 dark:text-gray-300">
+                                    {{ $item->tahun_mulai }} – {{ $item->tahun_selesai ?: 'Sekarang' }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4 text-gray-600 dark:text-gray-300">
+                                    {{ $item->nilai_akhir ?: '—' }}
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    @if ($item->sumber_data === 'SSO')
+                                        <span class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-600/20 dark:bg-emerald-500/10 dark:text-emerald-300 dark:ring-emerald-400/30">
+                                            <svg class="size-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                                            </svg>
+                                            SSO Terverifikasi
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-700 ring-1 ring-gray-600/20 dark:bg-white/10 dark:text-gray-300 dark:ring-white/20">
+                                            Manual
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="whitespace-nowrap px-6 py-4">
+                                    @if ($item->sumber_data === 'SSO')
+                                        <div class="flex items-center justify-end">
+                                            <span class="inline-flex items-center gap-1.5 text-xs font-medium text-gray-400 dark:text-gray-500">
+                                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                                </svg>
+                                                Terkunci
+                                            </span>
+                                        </div>
+                                    @else
+                                        <div class="flex items-center justify-end gap-2">
+                                        <button
+                                            type="button"
+                                            data-dialog-open="pendidikan-edit-{{ $item->id }}"
+                                            class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 transition hover:bg-gray-50 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 dark:bg-gray-950 dark:text-gray-200 dark:ring-white/10 dark:hover:bg-gray-800"
+                                        >
+                                            <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125" />
+                                            </svg>
+                                            Edit
+                                        </button>
+
+                                        <form
+                                            method="POST"
+                                            action="{{ route('mahasiswa.pendidikan.destroy', $item) }}"
+                                            onsubmit="return confirm('Hapus data pendidikan ini?')"
+                                        >
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <button
+                                                type="submit"
+                                                class="inline-flex items-center gap-1.5 rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-red-600 shadow-sm ring-1 ring-gray-300 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-500/20 dark:bg-gray-950 dark:text-red-400 dark:ring-white/10 dark:hover:bg-red-500/10"
+                                            >
+                                                <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.2v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                                </svg>
+                                                Hapus
+                                            </button>
+                                        </form>
+                                        </div>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-14 text-center">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <span class="flex size-12 items-center justify-center rounded-full bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500">
+                                            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
+                                            </svg>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Belum ada data pendidikan</p>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Tambahkan riwayat pendidikan pertama Anda.</p>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    {{-- Dialog tambah pendidikan --}}
+    <dialog
+        id="pendidikan-create"
+        data-dismissible
+        class="m-auto max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl border-0 bg-transparent p-0 backdrop:bg-gray-950/60 backdrop:backdrop-blur-sm"
+    >
+        <div class="rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-gray-900/10 dark:bg-gray-900 dark:ring-white/10">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Tambah Pendidikan</h2>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Lengkapi riwayat pendidikan Anda.</p>
+                </div>
+
+                <button
+                    type="button"
+                    data-dialog-close
+                    class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                >
+                    <span class="sr-only">Tutup</span>
+                    <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('mahasiswa.pendidikan.store') }}" class="mt-5 space-y-5">
+                @csrf
+
+                @include('mahasiswa.pendidikan._form', [
+                    'pendidikan' => null,
+                    'jenjangOptions' => $jenjangOptions,
+                    'editingId' => null,
+                ])
+
+                <div class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end dark:border-white/10">
+                    <button
+                        type="button"
+                        data-dialog-close
+                        class="inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-950 dark:text-gray-200 dark:ring-white/10 dark:hover:bg-gray-800"
+                    >
+                        Batal
+                    </button>
+
+                    <button
+                        type="submit"
+                        class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/30"
+                    >
+                        Simpan Pendidikan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    {{-- Dialog edit pendidikan (hanya untuk data manual) --}}
+    @foreach ($pendidikan as $item)
+        @continue($item->sumber_data === 'SSO')
+
+        <dialog
+            id="pendidikan-edit-{{ $item->id }}"
+            data-dismissible
+            class="m-auto max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-2xl border-0 bg-transparent p-0 backdrop:bg-gray-950/60 backdrop:backdrop-blur-sm"
+        >
+            <div class="rounded-2xl bg-white p-6 shadow-2xl ring-1 ring-gray-900/10 dark:bg-gray-900 dark:ring-white/10">
+                <div class="flex items-start justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Edit Pendidikan</h2>
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Perbarui data pendidikan Anda.</p>
+                    </div>
+
+                    <button
+                        type="button"
+                        data-dialog-close
+                        class="rounded-lg p-2 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 dark:hover:bg-white/5 dark:hover:text-gray-200"
+                    >
+                        <span class="sr-only">Tutup</span>
+                        <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <form method="POST" action="{{ route('mahasiswa.pendidikan.update', $item) }}" class="mt-5 space-y-5">
+                    @csrf
+                    @method('PUT')
+
+                    @include('mahasiswa.pendidikan._form', [
+                        'pendidikan' => $item,
+                        'jenjangOptions' => $jenjangOptions,
+                        'editingId' => $item->id,
+                    ])
+
+                    <div class="flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end dark:border-white/10">
+                        <button
+                            type="button"
+                            data-dialog-close
+                            class="inline-flex justify-center rounded-lg bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 transition hover:bg-gray-50 dark:bg-gray-950 dark:text-gray-200 dark:ring-white/10 dark:hover:bg-gray-800"
+                        >
+                            Batal
+                        </button>
+
+                        <button
+                            type="submit"
+                            class="inline-flex justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:bg-indigo-500 focus:outline-none focus:ring-4 focus:ring-indigo-500/30"
+                        >
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </dialog>
+    @endforeach
+
+    @include('mahasiswa._dialog-scripts')
+
+    @if ($errors->any())
+        @push('scripts')
+            <script>
+                document.getElementById({{ Js::from(old('_editing_id') ? 'pendidikan-edit-'.old('_editing_id') : 'pendidikan-create') }})?.showModal();
+            </script>
+        @endpush
+    @endif
+@endsection

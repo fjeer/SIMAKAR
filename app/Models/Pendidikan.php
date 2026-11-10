@@ -20,7 +20,21 @@ class Pendidikan extends Model
         'tahun_mulai',
         'tahun_selesai',
         'nilai_akhir',
+        'sumber_data',
+        'is_verified',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_verified' => 'boolean',
+        ];
+    }
 
     public function pengguna(): BelongsTo
     {

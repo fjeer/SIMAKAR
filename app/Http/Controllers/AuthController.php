@@ -74,11 +74,72 @@ class AuthController extends Controller
             throw $exception;
         }
 
+        if ($attributes['peran'] === 'mahasiswa') {
+            $this->syncPendidikanFromSso($ssoService, $pengguna, $nimNidn);
+        }
+
         Auth::login($pengguna);
 
         $request->session()->regenerate();
 
         return redirect()->route('dashboard.'.$pengguna->peran);
+    }
+
+    /**
+     * Sync the S1 education row with the SSO transcript summary.
+     *
+     * The campus API sends years with a semester code (for example "20231"),
+     * so only the first four digits are stored as the academic year.
+     */
+    private function syncPendidikanFromSso(
+        SsoService $ssoService,
+        Pengguna $pengguna,
+        string $nimNidn,
+    ): void {
+        try {
+            $transkrip = $ssoService->getTranskrip($nimNidn);
+
+            $ketuntasan = $transkrip['ketuntasan'] ?? [];
+            $mahasiswa = $transkrip['mahasiswa'] ?? [];
+
+            if ($ketuntasan === [] && $mahasiswa === []) {
+                Log::warning('Transkrip SSO kosong, sinkronisasi pendidikan dilewati.', [
+                    'nim' => $nimNidn,
+                ]);
+
+                return;
+            }
+
+            $tahunMasuk = $ketuntasan['tahun_masuk'] ?? null;
+            $tahunMulai = filled($tahunMasuk)
+                ? substr((string) $tahunMasuk, 0, 4)
+                : null;
+
+            $tahunKeluar = $ketuntasan['tahun_keluar'] ?? null;
+            $tahunSelesai = filled($tahunKeluar)
+                ? substr((string) $tahunKeluar, 0, 4)
+                : 'Sekarang';
+
+            $ipk = $ketuntasan['ipk_ketuntasan'] ?? null;
+
+            $pengguna->pendidikan()->updateOrCreate(
+                ['jenjang' => 'S1'],
+                [
+                    'nama_institusi' => (string) config('services.sso.institusi', 'Universitas Nurul Jadid'),
+                    'jurusan' => $mahasiswa['prodi'] ?? null,
+                    'tahun_mulai' => $tahunMulai,
+                    'tahun_selesai' => $tahunSelesai,
+                    'nilai_akhir' => is_scalar($ipk) ? (string) $ipk : null,
+                    'sumber_data' => 'SSO',
+                    'is_verified' => true,
+                ],
+            );
+        } catch (\Exception $exception) {
+            Log::warning('Gagal menyinkronkan pendidikan dari SSO.', [
+                'nim' => $nimNidn,
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
     public function logout(Request $request): RedirectResponse

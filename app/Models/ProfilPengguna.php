@@ -21,7 +21,23 @@ class ProfilPengguna extends Model
         'id_fakultas',
         'nama_fakultas',
         'nama_prodi',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'alamat',
+        'bio',
     ];
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'tanggal_lahir' => 'date',
+        ];
+    }
 
     public function pengguna(): BelongsTo
     {
