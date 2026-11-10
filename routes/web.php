@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
+    if (Auth::check()) {
+        return redirect()->route('dashboard.'.Auth::user()->peran);
+    }
+
+    return redirect()->route('login');
 });
 
 Route::middleware('guest')->group(function () {
