@@ -4,44 +4,111 @@
 skinparam linetype ortho
 
 entity "pengguna" as e01 {
-  *id : number <<generated>>
+  *id : bigint <<generated>>
   --
   *sso_id : string <<unique>>
   *nama : string
   email : string
   *peran : string
   *id_prodi : string
-  *created_at : timestamp
-  *updated_at : timestamp
+  created_at : timestamp
+  updated_at : timestamp
 }
 
-entity "log_audit" as e02 {
-  *id : number <<generated>>
+entity "profil_pengguna" as e02 {
+  *id : bigint <<generated>>
   --
-  *id_pengguna : number <<FK>>
-  *aksi : string
-  *deskripsi : text
-  *alamat_ip : string
-  *created_at : timestamp
-  *updated_at : timestamp
+  *pengguna_id : bigint <<FK>> <<unique>>
+  gelar_depan : string
+  gelar_belakang : string
+  jenis_kelamin : string(2)
+  no_hp : string
+  tempat_lahir : string
+  tanggal_lahir : date
+  alamat : text
+  bio : text
+  id_fakultas : string
+  nama_fakultas : string
+  nama_prodi : string
+  created_at : timestamp
+  updated_at : timestamp
 }
 
-entity "portofolio_cv" as e03 {
-  *id : number <<generated>>
+entity "cv_pendidikan" as e03 {
+  *id : bigint <<generated>>
   --
-  *id_pengguna : number <<FK>>
+  *sumber_data : string <<default Manual>>
+  *is_verified : boolean <<default false>>
+  *pengguna_id : bigint <<FK>>
+  *jenjang : string
+  *nama_institusi : string
+  jurusan : string
+  tahun_mulai : string
+  tahun_selesai : string
+  nilai_akhir : string
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "cv_pengalaman" as e04 {
+  *id : bigint <<generated>>
+  --
+  *sumber_data : string <<default Manual>>
+  *is_verified : boolean <<default false>>
+  *pengguna_id : bigint <<FK>>
+  *jenis : string
+  *posisi : string
+  *nama_institusi : string
+  deskripsi : text
+  *tanggal_mulai : date
+  tanggal_selesai : date
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "cv_sertifikasi" as e05 {
+  *id : bigint <<generated>>
+  --
+  *sumber_data : string <<default Manual>>
+  *is_verified : boolean <<default false>>
+  *pengguna_id : bigint <<FK>>
+  *nama_sertifikasi : string
+  *penerbit : string
+  nomor_sertifikat : string
+  *tanggal_terbit : date
+  tanggal_kedaluwarsa : date
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "cv_keahlian" as e06 {
+  *id : bigint <<generated>>
+  --
+  *sumber_data : string <<default Manual>>
+  *is_verified : boolean <<default false>>
+  *pengguna_id : bigint <<FK>>
+  *nama_keahlian : string
+  *tingkat : string
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "portofolio_cv" as e07 {
+  *id : bigint <<generated>>
+  --
+  *id_pengguna : bigint <<FK>>
   *judul : string
   ringkasan_profesional : text
   *jenis_templat : string
   file_terakhir_dibuat : string
-  *created_at : timestamp
-  *updated_at : timestamp
+  created_at : timestamp
+  updated_at : timestamp
 }
 
-entity "item_cv" as e04 {
-  *id : number <<generated>>
+entity "item_cv" as e08 {
+  *id : bigint <<generated>>
   --
-  *id_portofolio_cv : number <<FK>>
+  *id_portofolio_cv : bigint <<FK>>
   *tipe : string
   *judul : string
   *institusi : string
@@ -49,28 +116,73 @@ entity "item_cv" as e04 {
   tanggal_selesai : date
   deskripsi : text
   *sumber_api : string
-  *disembunyikan : boolean
-  *created_at : timestamp
-  *updated_at : timestamp
+  *disembunyikan : boolean <<default false>>
+  created_at : timestamp
+  updated_at : timestamp
 }
 
-entity "pelacakan_alumni" as e05 {
-  *id : number <<generated>>
+entity "pelacakan_alumni" as e09 {
+  *id : bigint <<generated>>
   --
-  *id_pengguna : number <<FK>>
-  *tahun_lulus : number
+  *id_pengguna : bigint <<FK>> <<unique>>
+  *tahun_lulus : smallint unsigned
   *status_saat_ini : string
   sektor_industri : string
   nama_perusahaan : string
   jabatan : string
-  *publik_di_direktori : boolean
-  *created_at : timestamp
-  *updated_at : timestamp
+  *publik_di_direktori : boolean <<default false>>
+  created_at : timestamp
+  updated_at : timestamp
 }
 
-e02 }|..|| e01
+entity "log_audit" as e10 {
+  *id : bigint <<generated>>
+  --
+  *id_pengguna : bigint <<FK>>
+  *aksi : string
+  *deskripsi : text
+  *alamat_ip : string
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+entity "activity_log" as e11 {
+  *id : bigint <<generated>>
+  --
+  log_name : string <<index>>
+  *description : text
+  subject_type : string <<index>>
+  subject_id : bigint
+  event : string
+  causer_type : string <<index>>
+  causer_id : bigint
+  attribute_changes : json
+  properties : json
+  created_at : timestamp
+  updated_at : timestamp
+}
+
+e02 ||..|| e01
 e03 }|..|| e01
-e04 }|..|| e03
-e05 |o..|| e01
+e04 }|..|| e01
+e05 }|..|| e01
+e06 }|..|| e01
+e07 }|..|| e01
+e08 }|..|| e07
+e09 |o..|| e01
+e10 }|..|| e01
+
+e11 ..> e01 : causer
+e11 ..> e02 : subject
+e11 ..> e03 : subject
+e11 ..> e04 : subject
+e11 ..> e05 : subject
+e11 ..> e06 : subject
+
+note right of e11
+  subject_type/subject_id dan
+  causer_type/causer_id bersifat
+  polimorfik tanpa foreign key.
+end note
 
 @enduml
